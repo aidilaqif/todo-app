@@ -1,74 +1,82 @@
 <script setup>
 /*
-ref(how can handle state)
-onMounted(use when we first render the page/component, get from local storage)
-computed(to have things in order because we have array)
-watch(watch for any changes for references)
+1. ref: how can handle state)
+2. onMounted: use when we first render the page/component, get from local storage)
+3. computed: to have things in order because we have array)
+5. watch: watch for any changes for references)
 */
+//Importing necessary functions from vue
 import { ref, onMounted, computed, watch } from 'vue'
 
-const todos = ref([])
-const name = ref('')
+//Initialize reactive variables
+const todos = ref([]) // Array to store todos
+const name = ref('') // Name input field value
 
-//input = content
-const input_content = ref('')
-//gonna be null by default
-const input_category = ref(null)
-//asc = ascending
+// Create refs for input fields
+const input_content = ref('') // Content of todo
+const input_category = ref(null) // Category of the todo
+
+// Computed property to sort todos in descending order of creation time
 const todos_asc = computed(()=> todos.value.sort((a,b) => {
   //return ascending list by data, latest by front and oldest at the back
   return b.createdAt - a.createdAt
 }))
 
+// Function to add a new todo
 const addTodo = () => {
   //first condition: to check empty string = no content, if there is space it will remove
   //second condtion: to check if there is nothing there
   if (input_content.value.trim() === ''|| input_category.value === null){
     return
   }
-  //push content, category and time into todos
-  todos.value.push({
+  //Add new todo to the todos category
+  todos.value.push({ //push content, category and time into todos
     content: input_content.value,
     category: input_category.value,
-    //by default nothing gonna be set into done
-    done: false,
-    //returns date in miliseconds which gonna use to compare inside in todos_asc
-    createdAt: new Date().getTime()
+    done: false, // By default nothing gonna be set into done
+    createdAt: new Date().getTime() // Setting creation time, Returns date in miliseconds which gonna use to compare inside in todos_asc
   })
-  //to remove content when submit
+
+  // Clearing input fields after adding todo
   input_content.value = ''
   input_category.value = null
 }
 
+// Funtion to remove a todo
 const removeTodo = todo => {
-  //loop through todo if not equal to todo then it will added back into the array if equal then it will not be added back
+  // Returns date in miliseconds which gonna use to compare inside in todos_asc
+  // Loop through todo if not equal to todo then it will added back into the array if equal then it will not be added back
   todos.value = todos.value.filter(t => t !== todo)
 }
 
+// Watching for changes in todos array and updating local storage
 watch(todos, newVal => {
   localStorage.setItem('todos', JSON.stringify(newVal))
 },{deep: true})//deep gonna look into indv item in the array n capture and send it
 
+// Watching for changes in name input field and updating local storage
 watch(name, (newVal) => {
-  //watching name, if name changes it will set it to new value, and update local storage
   localStorage.setItem('name', newVal)
 })
-//to save name in local storage
+
+// Loading name and todos from local storage when the component is mounted
 onMounted(() => {
   name.value = localStorage.getItem('name') || ''
   todos.value = JSON.parse(localStorage.getItem('todos')) || []
 })
 </script>
 
+<!-- Template for the todo app -->
 <template>
-
 <main class="app">
+  <!-- Greeting section with name input field -->
   <section class="greeting">
     <h2 class="title">
       What's up, <input type="text" placeholder="Name here" v-model="name" />
     </h2>
   </section>
 
+  <!-- Section to create a new todo -->
   <section class="create-todo">
     <h3>CREATE A TODO</h3>
 
@@ -82,8 +90,7 @@ onMounted(() => {
         <h4>Pick a category</h4>
 
         <div class="options">
-
-          <!-- radio selection for business category -->
+          <!-- Radio button selecting business category -->
           <label>
             <input
               type="radio"
@@ -94,7 +101,7 @@ onMounted(() => {
             <div>Business</div>
           </label>
 
-          <!-- radio selection for personal category -->
+          <!-- Radio button selecting personal category -->
           <label>
             <input
               type="radio"
@@ -104,29 +111,28 @@ onMounted(() => {
             <span class="bubble personal"></span>
             <div>Personal</div>
           </label>
-
         </div>
+        <!-- Submit button to add todo -->
         <input type="submit" value="Add todo">
     </form>
   </section>
 
+  <!-- Section to display the todo list -->
   <section class="todo-list">
-    <!-- todo list selection -->
     <h3>TODO LIST</h3>
     <div class="list">
+      <!-- Iterating over todos and displaying them -->
       <div v-for="todo in todos_asc" :class="`todo-item ${todo.done && 'done'}`">
-
-        <!-- checkbox -->
         <label>
+          <!-- Checkbox for marking todo as done -->
           <input type="checkbox" v-model="todo.done" />
           <span :class="`bubble ${todo.category}`"></span>
         </label>
-
-        <!-- content of checkbox -->
+        <!-- Input field to edit todo content -->
         <div class="todo-content">
           <input type="text" v-model="todo.content">
         </div>
-
+        <!-- Button to delete todo -->
         <div class="actions">
           <button class="delete" @click="removeTodo(todo)">Delete</button>
         </div>
